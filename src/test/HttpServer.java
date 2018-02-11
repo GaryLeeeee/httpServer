@@ -9,24 +9,48 @@ import java.net.Socket;
 
 public class HttpServer implements Runnable {
 	private ServerSocket serverSocket = null;
-
+	String uri = null;
+	String method = null;
 	public HttpServer() throws IOException {
 		serverSocket = new ServerSocket(4399);
 		System.out.println("4399端口监听ing……");
 		new Thread(this).start();
 	}
-
 	public void run() {
 		while (true) {
 			try {
 				Socket socket = serverSocket.accept();
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				System.out.println("-----请求如下------");
+				System.out.println("");
 				// System.out.println(bufferedReader.readLine());
 				String content;
+				int contentLength = 0;
+				//输出request
 				while ((content = bufferedReader.readLine()) != null && !content.isEmpty()) {
+					//获取方法和资源
+					if(content.endsWith("HTTP/1.1")){
+						String[] parts = content.split(" ");
+						method = parts[0];
+						uri = parts[1];
+					}
+					//获取"POST"请求时的参数长度
+					if(content.startsWith("Content-Length")){
+						contentLength = Integer.parseInt(content.substring("Content-Length: ".length()));
+					}
+					
 					System.out.println(content);
 				}
+				System.out.println("请求结束!");
+				System.out.format("用户请求的method为'%s',uri为'%s'\r\n",method,uri);
+				StringBuffer sb=new StringBuffer();
+				//获取并输出"POST"的参数内容
+				if ("POST".equalsIgnoreCase(method)) {  
+                    for (int i = 0; i < contentLength; i++) {
+                        sb.append((char)bufferedReader.read());
+                    }
+					System.out.println("POST参数是："+sb.toString());
+                } 
+				//response
 				PrintWriter pw = new PrintWriter(socket.getOutputStream());
 
 				pw.println("HTTP/1.1 200 OK");
