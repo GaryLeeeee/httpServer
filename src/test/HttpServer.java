@@ -1,5 +1,8 @@
 package test;
 
+import server.MyRequest;
+import server.MyResponse;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,9 +14,11 @@ public class HttpServer implements Runnable {
 	private ServerSocket serverSocket = null;
 	String uri = null;
 	String method = null;
+	private MyRequest request;
+	private MyResponse response;
 	public HttpServer() throws IOException {
 		serverSocket = new ServerSocket(4399);
-		System.out.println("4399¶Ë¿Ú¼àÌıing¡­¡­");
+		System.out.println("4399ç«¯å£ç›‘å¬ingâ€¦â€¦");
 		new Thread(this).start();
 	}
 	public void run() {
@@ -25,55 +30,55 @@ public class HttpServer implements Runnable {
 				// System.out.println(bufferedReader.readLine());
 				String content;
 				int contentLength = 0;
-				//Êä³örequest
+				//è¾“å‡ºrequest
 				while ((content = bufferedReader.readLine()) != null && !content.isEmpty()) {
-					//»ñÈ¡·½·¨ºÍ×ÊÔ´
+					//è·å–æ–¹æ³•å’Œèµ„æº
 					if(content.endsWith("HTTP/1.1")){
 						String[] parts = content.split(" ");
 						method = parts[0];
 						uri = parts[1];
 					}
-					//»ñÈ¡"POST"ÇëÇóÊ±µÄ²ÎÊı³¤¶È
+					//è·å–"POST"è¯·æ±‚æ—¶çš„å‚æ•°é•¿åº¦
 					if(content.startsWith("Content-Length")){
 						contentLength = Integer.parseInt(content.substring("Content-Length: ".length()));
 					}
-					
+
 					System.out.println(content);
 				}
-				System.out.println("ÇëÇó½áÊø!");
-				System.out.format("ÓÃ»§ÇëÇóµÄmethodÎª'%s',uriÎª'%s'\r\n",method,uri);
+				System.out.println("è¯·æ±‚ç»“æŸ!");
+				System.out.format("ç”¨æˆ·è¯·æ±‚çš„methodä¸º'%s',uriä¸º'%s'\r\n",method,uri);
 				StringBuffer sb=new StringBuffer();
-				//»ñÈ¡²¢Êä³ö"POST"µÄ²ÎÊıÄÚÈİ
-				if ("POST".equalsIgnoreCase(method)) {  
-                    for (int i = 0; i < contentLength; i++) {
-                        sb.append((char)bufferedReader.read());
-                    }
-					System.out.println("POST²ÎÊıÊÇ£º"+sb.toString());
-                } 
+				//è·å–å¹¶è¾“å‡º"POST"çš„å‚æ•°å†…å®¹
+				if ("POST".equalsIgnoreCase(method)) {
+					for (int i = 0; i < contentLength; i++) {
+						sb.append((char)bufferedReader.read());
+					}
+					System.out.println("POSTå‚æ•°æ˜¯ï¼š"+sb.toString());
+				}
 				//response
 				PrintWriter pw = new PrintWriter(socket.getOutputStream());
 
 				pw.println("HTTP/1.1 200 OK");
-				pw.println("Content-type:text/html");
+				pw.println("Content-type:text/html;charset=utf-8");
 				pw.println();
-				pw.println("<h1>·ÃÎÊ³É¹¦£¡</h1>");
+				pw.println("<h1>è®¿é—®æˆåŠŸï¼</h1>");
 				pw.println("<form method='post' action='/login'>");
-				pw.println("ÕËºÅ:<input type='text' name='user'><br>");
-				pw.println("ÃÜÂë:<input type='password' name='password'><br>");
-				pw.println("<input type='submit' value='µÇÂ¼(post²âÊÔ)'>");
+				pw.println("è´¦å·:<input type='text' name='user'><br>");
+				pw.println("å¯†ç :<input type='password' name='password'><br>");
+				pw.println("<input type='submit' value='ç™»å½•(postæµ‹è¯•)'>");
 				pw.println("</form>");
 				pw.println("<form method='get' action='/search'>");
 				pw.println("<input type='text' name='id'><br>");
-				pw.println("<input type='submit' value='ËÑË÷(get²âÊÔ)'>");
+				pw.println("<input type='submit' value='æœç´¢(getæµ‹è¯•)'>");
 				pw.println("</form>");
 				// pw.println("<form method='post' action='/login'
 				// enctype='multipart/form-data'>");
 				// pw.println("<input type='file' name='file'><br>");
-				// pw.println("<input type='submit' value='ÎÄ¼şÉÏ´«'>");
+				// pw.println("<input type='submit' value='æ–‡ä»¶ä¸Šä¼ '>");
 				// pw.println("</form>");
-				pw.println("<a href='test.gif'>Í¼Æ¬²âÊÔ</a>");
-				pw.flush();
-				socket.close();
+				pw.println("<a href='test.gif'>å›¾ç‰‡æµ‹è¯•</a>");
+				pw.flush();//ä¸åŠ çš„è¯æäº¤åæ— è·³è½¬
+				socket.close();//ä¸åŠ çš„è¯ç•Œé¢ä¸€ç›´åœ¨åˆ·æ–°çŠ¶æ€
 			} catch (Exception e) {
 				// TODO: handle exception
 				e.printStackTrace();
